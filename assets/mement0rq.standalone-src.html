@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>mement0rq · bug bounty &amp; security research</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="description" content="mement0rq · bug bounty hunter &amp; security researcher. Building Monstera, a TUI for recon &amp; vulnerability scanning." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+<template id="__bundler_thumbnail" data-bg-color="#1A1B26">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#1A1B26"/>
+    <g transform="translate(600 400)" font-family="ui-monospace, 'JetBrains Mono', monospace" font-weight="700" text-anchor="middle">
+      <text font-size="120" fill="#C0CAF5"><tspan fill="#9ECE6A">@</tspan>mement0rq</text>
+      <rect x="430" y="-90" width="36" height="120" fill="#9ECE6A"/>
+    </g>
+  </svg>
+</template>
+<style>
+  /* page-specific tweaks (none yet) */
+</style>
+</head>
+<body>
+
+<main class="page">
+
+  <div class="topbar">
+    <span class="dot"></span>
+    <span><span class="path">~/</span>mement0rq</span>
+    <span class="spacer"></span>
+    <nav>
+      <a href="mement0rq.html" class="here">home</a>
+      <a href="resources.html">resources</a>
+      <a href="resources.html#blog">blog</a>
+    </nav>
+  </div>
+
+  <header class="hero">
+    <div>
+      <h1><span class="at">@</span>mement0rq<span class="cursor"></span></h1>
+      <p class="tag">
+        Bug bounty hunter &amp; aspiring security researcher.
+        Learning in public, hunting in private &mdash; and building tools for the recon I keep doing by hand.
+      </p>
+      <div class="meta">
+        <span><span class="ic">◆</span> remote</span>
+        <span><span class="ic">◆</span> started early '26</span>
+        <span><span class="ic">◆</span> recon &middot; web</span>
+      </div>
+    </div>
+    <img class="mascot" src="assets/mement0rq-mascot.png" alt="mement0rq mascot — a hooded monstera leaf at a laptop" />
+  </header>
+
+  <section class="block">
+    <h2>about</h2>
+    <p>
+      I'm a few months into bug bounty hunting on HackerOne &amp; Bugcrowd. Background in software engineering;
+      pivoted into offensive security after one too many vulnerable APIs landed on my doorstep at work.
+    </p>
+    <p class="dim">
+      Currently focused on attack-surface discovery and pre-auth web bugs.
+      I write up everything I learn &mdash; the <a class="inline" href="resources.html#blog">blog</a> is bootstrapping.
+    </p>
+  </section>
+
+  <section class="block">
+    <h2>currently building</h2>
+    <div class="now">
+      <div class="head">
+        <span class="label">private alpha</span>
+        <span class="status">not yet public</span>
+      </div>
+      <h3>Monstera <span class="v">v0.1.0-alpha</span></h3>
+      <p>
+        A terminal UI for chaining recon and vulnerability tooling.
+        Profiles, plugin orchestration, and a launcher built for muscle memory &mdash;
+        so I can spend time reading findings, not wiring shell pipes. Polishing before open-sourcing.
+      </p>
+
+      <div class="tui-mock" aria-hidden="true"><pre>                          <span class="lf">⌬</span> <span class="b">Monstera</span>
+   <span class="mu">1</span> <span class="lb">Launcher</span>     <span class="lf">2 Scan</span>     <span class="mu">3 History</span>     <span class="mu">4 Reference</span>     <span class="mu">5 Tools</span>
+<span class="mu">────────────────────────────────────────────────────────────────────────────</span>
+ <span class="lb">Scan mode:</span> <span class="lf">seed</span> <span class="mu">▷</span> <span class="b">mement0rq.com</span>            <span class="mu">0 hits  rate:2/s  00:07</span>
+
+ <span class="b">Pipeline</span>                                <span class="b">Log</span>
+ <span class="mu">name              status   info</span>           <span class="mu">time      level    message</span>
+<span class="hi"> <span class="b">▸ subfinder      ~        running</span>         </span> <span class="mu">11:23:30  run     </span> ⟳ <span class="lf">starting subfinder…</span>
+   chaos           <span class="mu">·        queued</span>
+   asnmap          <span class="mu">·        queued</span>
+   dns_records     <span class="mu">·        queued</span>
+   dnsx            <span class="mu">·        queued</span>
+   httpx           <span class="mu">·        queued</span>
+   cdncheck        <span class="mu">·        no acceptable input…</span>
+   robots_sitemap  <span class="mu">·        no acceptable input…</span>
+   security_hdrs   <span class="mu">·        no acceptable input…</span>
+   tlsx            <span class="mu">·        no acceptable input…</span>
+   subzy           <span class="mu">·        no acceptable input…</span>
+   nuclei          <span class="mu">·        queued</span>
+
+<span class="mu">────────────────────────────────────────────────────────────────────────────</span>
+ <span class="mu">profile:</span> <span class="lb">default</span>  <span class="mu">output:</span> <span class="lb">~/bounty/monstera/mement0rq.com/seed_…</span>
+ <span class="lf">[/]</span><span class="mu">:pane</span>  <span class="lf">tab</span><span class="mu">:view</span>  <span class="lf">j/k</span><span class="mu">:navigate</span>  <span class="lf">↵</span><span class="mu">:rerun</span>  <span class="lf">s</span><span class="mu">:skip</span>  <span class="lf">q</span><span class="mu">:quit</span></pre></div>
+
+      <div class="tools">
+        <span>subfinder</span>
+        <span>dnsx</span>
+        <span>httpx</span>
+        <span>nuclei</span>
+        <span>gowitness</span>
+        <span>subzy</span>
+        <span>+ 16 more</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>focus</h2>
+    <div class="focus-grid">
+      <div class="focus-card">
+        <div class="ic">01 · recon</div>
+        <h4>Attack-surface discovery</h4>
+        <p>Sub-enum, asset correlation, TLS &amp; cert pivots, S3/GCP bucket hunting.</p>
+      </div>
+      <div class="focus-card">
+        <div class="ic">02 · web</div>
+        <h4>Pre-auth web bugs</h4>
+        <p>Access control, IDOR, SSRF, broken auth, header confusion, takeover.</p>
+      </div>
+      <div class="focus-card">
+        <div class="ic">03 · tools</div>
+        <h4>Recon orchestration</h4>
+        <p>Wiring up open-source tooling into reproducible workflows. Hence Monstera.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>elsewhere</h2>
+    <div class="links-list">
+      <a href="https://hackerone.com/mement0rq">
+        <span class="name"><code>h1</code> HackerOne</span>
+        <span class="handle">@mement0rq ↗</span>
+      </a>
+      <a href="https://bugcrowd.com/mement0rq">
+        <span class="name"><code>bc</code> Bugcrowd</span>
+        <span class="handle">@mement0rq ↗</span>
+      </a>
+      <a href="https://github.com/mement0rq">
+        <span class="name"><code>gh</code> GitHub</span>
+        <span class="handle">@mement0rq ↗</span>
+      </a>
+      <a href="https://x.com/mement0rq">
+        <span class="name"><code>x</code> Twitter / X</span>
+        <span class="handle">@mement0rq ↗</span>
+      </a>
+      <a href="/cdn-cgi/l/email-protection#117978517c747c747f652163603f727e7c">
+        <span class="name"><code>@</code> Email</span>
+        <span class="handle"><span class="__cf_email__" data-cfemail="600809200d050d050e145012114e030f0d">[email&#160;protected]</span></span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <span><span class="prompt">$</span>&nbsp;last_updated&nbsp;=&nbsp;may&nbsp;'26</span>
+    <span><a href="resources.html">resources →</a></span>
+  </footer>
+
+</main>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html>
