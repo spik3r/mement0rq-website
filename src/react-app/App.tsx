@@ -6,12 +6,14 @@ import Home from "./pages/Home";
 import Resources from "./pages/Resources";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import AiReconPost from "./pages/AiReconPost";
 import { pages, type PageId } from "./site-model";
 
 const views = {
   Home: <Home />,
   Resources: <Resources />,
   Blog: <Blog />,
+  AiRecon: <AiReconPost />,
   GettingStarted: <BlogPost />,
 } satisfies Record<PageId, ReactElement>;
 
