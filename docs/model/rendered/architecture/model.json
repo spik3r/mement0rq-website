@@ -1,0 +1,37 @@
+{
+  "formatVersion": "diagram-json/v1",
+  "profileVersion": "architecture-diagram/v1",
+  "id": "Memento",
+  "title": "mement0rq: public site architecture",
+  "nodes": [
+    {
+      "id": "Browser",
+      "kind": "actor",
+      "label": "Reader’s browser"
+    },
+    {
+      "id": "Assets",
+      "kind": "service",
+      "label": "Cloudflare Workers Assets"
+    },
+    {
+      "id": "App",
+      "kind": "service",
+      "label": "React application"
+    }
+  ],
+  "links": [
+    {
+      "id": "Load",
+      "from": "Browser",
+      "to": "Assets",
+      "label": "Load the static application"
+    },
+    {
+      "id": "Navigate",
+      "from": "Browser",
+      "to": "App",
+      "label": "Navigate within the React app"
+    }
+  ]
+}

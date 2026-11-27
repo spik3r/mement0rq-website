@@ -37,13 +37,16 @@
 	},
 	"private": true,
 	"scripts": {
-		"build": "tsc -b && vite build",
+		"build": "npm run model:check && tsc -b && vite build",
 		"cf-typegen": "wrangler types",
 		"check": "tsc && vite build && wrangler deploy --dry-run",
 		"deploy": "wrangler deploy",
 		"dev": "vite",
 		"lint": "eslint .",
-		"preview": "npm run build && vite preview"
+		"preview": "npm run build && vite preview",
+		"test": "node --test && npm run model:check",
+		"model:generate": "node scripts/project-site-model.mjs --write",
+		"model:check": "node scripts/project-site-model.mjs --check"
 	},
 	"type": "module"
 }

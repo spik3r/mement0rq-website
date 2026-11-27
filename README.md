@@ -1,4 +1,7 @@
-# React + Vite + Hono + Cloudflare Workers
+# mement0rq website
+
+The React site uses one [site model and Foundry diagram workflow](docs/model/README.md)
+for navigation, article data and generated views.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/vite-react-template)
 

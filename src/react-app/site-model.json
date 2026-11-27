@@ -1,0 +1,64 @@
+{
+  "version": "foundry-site-model/v1",
+  "site": {
+    "id": "Memento",
+    "name": "mement0rq"
+  },
+  "pages": {
+    "Home": {
+      "path": "/",
+      "navLabel": "home",
+      "heading": "mement0rq",
+      "title": "mement0rq · bug bounty & security research",
+      "description": "mement0rq, bug bounty hunter and security researcher. Building Monstera, a TUI for recon and vulnerability scanning."
+    },
+    "Resources": {
+      "path": "/resources",
+      "navLabel": "resources",
+      "heading": "resources",
+      "title": "Resources · mement0rq",
+      "description": "A bookmark dump for fellow new hunters. These are the things that taught me the most. Curated, not exhaustive."
+    },
+    "Blog": {
+      "path": "/blog",
+      "navLabel": "blog",
+      "heading": "blog",
+      "title": "Blog · mement0rq",
+      "description": "Writeups, build notes, and lessons from the bench."
+    },
+    "GettingStarted": {
+      "path": "/blog/getting-started",
+      "parent": "Blog",
+      "heading": "Getting started with bug bounty: from bash scripts to building Monstera",
+      "title": "Getting started with bug bounty · mement0rq",
+      "description": "From bash scripts to building Monstera: the messy, frustrating, addictive path into offensive security."
+    }
+  },
+  "navigation": ["Home", "Resources", "Blog"],
+  "articles": [
+    { "id": "GettingStarted", "status": "published", "page": "GettingStarted", "date": "2026-05", "readMinutes": 5 },
+    { "id": "FirstBounty", "status": "draft", "title": "My first bounty" }
+  ],
+  "components": [
+    { "id": "Browser", "kind": "actor", "label": "Reader’s browser" },
+    { "id": "Assets", "kind": "service", "label": "Cloudflare Workers Assets" },
+    { "id": "App", "kind": "service", "label": "React application" }
+  ],
+  "links": [
+    { "id": "Load", "from": "Browser", "to": "Assets", "label": "Load the static application" },
+    { "id": "Navigate", "from": "Browser", "to": "App", "label": "Navigate within the React app" }
+  ],
+  "journeys": [
+    {
+      "id": "ReadArticle",
+      "title": "Read a published article",
+      "steps": [
+        { "id": "LoadHome", "link": "Load", "page": "Home", "label": "GET", "style": "sync" },
+        { "id": "Loaded", "link": "Load", "label": "Serve the app shell", "style": "reply" },
+        { "id": "OpenBlog", "link": "Navigate", "page": "Blog", "label": "Open", "style": "sync" },
+        { "id": "OpenArticle", "link": "Navigate", "page": "GettingStarted", "label": "Open", "style": "sync" },
+        { "id": "Return", "link": "Navigate", "page": "Blog", "label": "Return to", "style": "sync" }
+      ]
+    }
+  ]
+}

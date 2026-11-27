@@ -1,0 +1,65 @@
+{
+  "formatVersion": "diagram-json/v1",
+  "profileVersion": "sequence-diagram/v1",
+  "id": "ReadArticle",
+  "title": "Read a published article",
+  "participants": [
+    {
+      "id": "Browser",
+      "label": "Reader’s browser",
+      "kind": "actor"
+    },
+    {
+      "id": "Assets",
+      "label": "Cloudflare Workers Assets",
+      "kind": "participant"
+    },
+    {
+      "id": "App",
+      "label": "React application",
+      "kind": "participant"
+    }
+  ],
+  "steps": [
+    {
+      "id": "LoadHome",
+      "kind": "message",
+      "from": "Browser",
+      "to": "Assets",
+      "label": "GET /",
+      "style": "sync"
+    },
+    {
+      "id": "Loaded",
+      "kind": "message",
+      "from": "Assets",
+      "to": "Browser",
+      "label": "Serve the app shell",
+      "style": "reply"
+    },
+    {
+      "id": "OpenBlog",
+      "kind": "message",
+      "from": "Browser",
+      "to": "App",
+      "label": "Open /blog",
+      "style": "sync"
+    },
+    {
+      "id": "OpenArticle",
+      "kind": "message",
+      "from": "Browser",
+      "to": "App",
+      "label": "Open /blog/getting-started",
+      "style": "sync"
+    },
+    {
+      "id": "Return",
+      "kind": "message",
+      "from": "Browser",
+      "to": "App",
+      "label": "Return to /blog",
+      "style": "sync"
+    }
+  ]
+}

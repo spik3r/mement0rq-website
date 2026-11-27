@@ -1,18 +1,17 @@
 import { Link } from "react-router-dom";
-import HeroRoot, { HeroH1, LeafPrefix, Tagline } from "../components/sections/Hero";
-import { BlogPostBlock, BlogPostDate, BlogPostTitle, BlogPostBody } from "../components/blocks/BlogPost";
+import PageHeading from "../components/PageHeading";
+import { articleDate, articles, pages, type PageId } from "../site-model";
+import { BlogPostBlock, BlogPostDate, BlogPostBody } from "../components/blocks/BlogPost";
 
 export default function BlogPost() {
+  const article = articles.find((entry) => entry.status === "published" && entry.page === "GettingStarted");
+  if (article?.status !== "published") throw new Error("GettingStarted must have published metadata");
   return (
     <>
-      <HeroRoot $inline>
-        <HeroH1 style={{ fontSize: 32, lineHeight: 1.3 }}><LeafPrefix>/</LeafPrefix>Getting started with bug bounty</HeroH1>
-        <Tagline style={{ marginBottom: 4 }}>From bash scripts to building Monstera: the messy, frustrating, addictive path into offensive security.</Tagline>
-      </HeroRoot>
+      <PageHeading page="GettingStarted" article />
 
       <BlogPostBlock>
-        <BlogPostDate>May 2026 · ~5 min read</BlogPostDate>
-        <BlogPostTitle>Getting started with bug bounty: from bash scripts to building Monstera</BlogPostTitle>
+        <BlogPostDate><time dateTime={article.date}>{articleDate(article.date)}</time> · ~{article.readMinutes} min read</BlogPostDate>
         <BlogPostBody>
           <p>I knew better than to just spin up Zap in attack mode. A few years ago at work, some external security training had mentioned it, along with a warning that automated scanners generate noise and burn through rate limits fast. The training also covered Nuclei for template-based scanning, and I'd ended up using Subfinder and a few other ProjectDiscovery tools from a defensive perspective, checking our own attack surface before someone else did. So when I decided to try bug bounty, I at least knew the names of the tools. What I didn't know was how to chain them together into something that actually found bugs.</p>
 
@@ -56,7 +55,7 @@ nuclei -l "$OUTDIR/live.txt" -o "$OUTDIR/nuclei.txt"
           <p>You need to love the game, because the game does not love you back. It takes time, it takes effort, and it absolutely does not care that you used to be a senior engineer somewhere. But if you show up consistently, the skill compounds. And eventually, the bounties do too.</p>
 
           <p style={{ marginTop: 32, fontSize: 13, color: "var(--muted)" }}>
-            <Link to="/blog" className="inline">back to blog</Link>
+            <Link to={pages[pages.GettingStarted.parent as PageId].path} className="inline">back to blog</Link>
           </p>
         </BlogPostBody>
       </BlogPostBlock>
