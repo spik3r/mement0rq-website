@@ -1,5 +1,6 @@
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, Link } from "react-router-dom";
 import styled from "styled-components";
+import { navigation, pages, site } from "../site-model";
 
 const PageRoot = styled.main`
   max-width: 1060px;
@@ -23,6 +24,8 @@ const Topbar = styled.div`
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   font: 500 15px/1 'JetBrains Mono', ui-monospace, monospace;
   color: var(--muted);
+
+  @media (max-width: 360px) { flex-wrap: wrap; }
 
   @media (max-width: 640px) {
     position: static;
@@ -66,19 +69,20 @@ export default function PageLayout() {
   return (
     <PageRoot>
       <Topbar>
-        <StatusDot />
-        <span><Breadcrumb>~/</Breadcrumb>mement0rq</span>
+        <StatusDot aria-hidden="true" />
+        <span><Breadcrumb>~/</Breadcrumb>{site.name}</span>
         <FlexSpacer />
-        <Nav>
-          <NavLink to="/" end>home</NavLink>
-          <NavLink to="/resources">resources</NavLink>
-          <NavLink to="/blog">blog</NavLink>
+        <Nav aria-label="Main navigation">
+          {navigation.map((id) => {
+            const page = pages[id];
+            return "navLabel" in page ? <NavLink key={id} to={page.path} end={id === "Home"}>{page.navLabel}</NavLink> : null;
+          })}
         </Nav>
       </Topbar>
       <Outlet />
       <Footer>
         <span><span className="prompt">$</span> cat ~/readme.md</span>
-        <span><a href="/">back home</a></span>
+        <span><Link to={pages.Home.path}>back home</Link></span>
       </Footer>
     </PageRoot>
   );

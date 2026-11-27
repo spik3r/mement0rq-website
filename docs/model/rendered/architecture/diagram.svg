@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 690" role="img" aria-labelledby="title desc">
+<title id="title">mement0rq: public site architecture</title>
+<desc id="desc">Logical architecture map. Numbered tracks point from the caller to its dependency. The key names the endpoints and interaction.</desc>
+<style>
+text{font-family:system-ui,sans-serif;font-size:13px;fill:#16243a}
+.heading{font-size:20px;font-weight:700}.label,.key{font-weight:600}
+.kind{fill:#324869}.number{font-weight:700;text-anchor:middle}
+.track{fill:none;stroke:#435879;stroke-width:2;marker-end:url(#arrow)}
+</style>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#435879"/></marker></defs>
+<rect width="640" height="690" rx="10" fill="#fff"/>
+<text x="24" y="32" class="heading">mement0rq: public site</text>
+<text x="24" y="56" class="heading">architecture</text>
+<g data-node="Browser" data-kind="actor">
+<rect x="24" y="90" width="288" height="138" rx="8" fill="#edf3fc" stroke="#647d9d"/>
+<text x="37" y="109" class="kind">actor · Browser</text>
+<text x="37" y="153" class="label">Reader’s browser</text>
+</g>
+<g data-node="Assets" data-kind="service">
+<rect x="24" y="246" width="288" height="138" rx="8" fill="#edf3fc" stroke="#647d9d"/>
+<text x="37" y="265" class="kind">service · Assets</text>
+<text x="37" y="309" class="label">Cloudflare Workers</text>
+<text x="37" y="324" class="label">Assets</text>
+</g>
+<g data-node="App" data-kind="service">
+<rect x="24" y="402" width="288" height="138" rx="8" fill="#edf3fc" stroke="#647d9d"/>
+<text x="37" y="421" class="kind">service · App</text>
+<text x="37" y="465" class="label">React application</text>
+</g>
+<path data-link="Load" data-from="Browser" data-to="Assets" class="track" d="M 312 151 H 354 V 315 H 312"/>
+<rect x="316" y="144" width="22" height="14" rx="6" fill="#fff"/>
+<text x="327" y="155" class="number">1</text>
+<path data-link="Navigate" data-from="Browser" data-to="App" class="track" d="M 312 167 H 382 V 471 H 312"/>
+<rect x="316" y="160" width="22" height="14" rx="6" fill="#fff"/>
+<text x="327" y="171" class="number">2</text>
+<text x="24" y="572" class="key">Dependencies (caller → dependency)</text>
+<text x="36" y="595" class="number">1</text>
+<text x="57" y="595" class="entry">Browser → Assets · Load the static</text>
+<text x="57" y="614" class="entry">application</text>
+<text x="36" y="642" class="number">2</text>
+<text x="57" y="642" class="entry">Browser → App · Navigate within the</text>
+<text x="57" y="661" class="entry">React app</text>
+</svg>

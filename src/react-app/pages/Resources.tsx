@@ -1,4 +1,4 @@
-import HeroRoot, { HeroH1, LeafPrefix, Tagline } from "../components/sections/Hero";
+import PageHeading from "../components/PageHeading";
 import SectionRoot, { SectionHeading, MutedText } from "../components/sections/Section";
 import { ResourceGrid, ResourceCard, ResourceBody, ResourceTitle, ResourceDescription, OutboundArrow } from "../components/blocks/Resource";
 import { Badge } from "../components/blocks/Badge";
@@ -50,10 +50,7 @@ function ResourceList({ items }: { items: typeof learning }) {
 export default function Resources() {
   return (
     <>
-      <HeroRoot $inline>
-        <HeroH1 style={{ fontSize: 40 }}><LeafPrefix>/</LeafPrefix>resources</HeroH1>
-        <Tagline style={{ marginBottom: 8 }}>A bookmark dump for fellow new hunters. These are the things that taught me the most. Curated, not exhaustive.</Tagline>
-      </HeroRoot>
+      <PageHeading page="Resources" />
 
       <SectionRoot>
         <SectionHeading>tools · what I actually run</SectionHeading>

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 export const TerminalBlock = styled.div`
@@ -13,7 +14,7 @@ export const TerminalBlock = styled.div`
   .prompt { color: var(--leaf); }
 `;
 
-export const BlogComingSoon = styled.div`
+export const BlogIndexPanel = styled.div`
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -37,13 +38,13 @@ export const BlogComingSoon = styled.div`
     &::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--leaf); box-shadow: 0 0 8px var(--leaf); animation: pulse 2.2s ease-in-out infinite; }
   }
   @keyframes pulse { 50% { opacity: 0.4; } }
-  h3 { font: 700 28px/1.2 'Inter', sans-serif; letter-spacing: -0.01em; margin-bottom: 10px; }
+  h2 { font: 700 28px/1.2 'Inter', sans-serif; letter-spacing: -0.01em; margin-bottom: 10px; }
   p { font: 400 15px/1.6 'Inter', sans-serif; color: var(--label); max-width: 480px; margin: 0 auto 24px; }
 `;
 
 export const PostList = styled.div` margin-top: 24px; `;
 
-export const PostRow = styled.a`
+export const PostRow = styled(Link)`
   display: flex; align-items: center; justify-content: space-between;
   gap: 18px; padding: 16px 0; border-bottom: 1px solid var(--border);
   text-decoration: none; color: var(--ink);

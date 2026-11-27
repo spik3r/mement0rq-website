@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { pages } from "../site-model";
 import mascotUrl from "../assets/mement0rqMascot.webp";
 import tuiMockUrl from "../assets/monstera-tui-mock.png";
 import HeroRoot, { HeroTopRow, HeroH1, LeafPrefix, BlinkingCursor, Mascot } from "../components/sections/Hero";
@@ -11,7 +13,7 @@ export default function Home() {
     <>
       <HeroRoot>
         <HeroTopRow>
-          <HeroH1><LeafPrefix>@</LeafPrefix>mement0rq<BlinkingCursor /></HeroH1>
+          <HeroH1><LeafPrefix>@</LeafPrefix>{pages.Home.heading}<BlinkingCursor /></HeroH1>
           <Mascot src={mascotUrl} alt="mement0rq mascot" />
         </HeroTopRow>
       </HeroRoot>
@@ -21,7 +23,7 @@ export default function Home() {
         <TextPanel>
           <BodyText>Bug bounty hunter and security researcher. I spend most of my time on recon, pre-auth web bugs, and building small tools for the work I keep doing by hand.</BodyText>
           <BodyText>I'm a few months into bug bounty on HackerOne and Bugcrowd. My background is software engineering, but I moved into offensive security after one too many vulnerable APIs landed on my doorstep at work.</BodyText>
-          <MutedText>Right now I'm focused on attack-surface discovery and web bugs. I write up what I learn as I go, and the <a className="inline" href="/blog">blog</a> is slowly getting there.</MutedText>
+          <MutedText>Right now I'm focused on attack-surface discovery and web bugs. I write up what I learn as I go, and the <Link className="inline" to={pages.Blog.path}>blog</Link> is slowly getting there.</MutedText>
         </TextPanel>
       </SectionRoot>
 
