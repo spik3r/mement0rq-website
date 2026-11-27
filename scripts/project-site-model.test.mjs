@@ -34,9 +34,9 @@ test("invalid models stop projection before rendering", () => {
     [m => { m.pages.Resources.path = "/blog"; }, /duplicate route/],
     [m => { m.pages.Resources.path += "\n"; }, /Invalid or duplicate route/],
     [m => { m.pages.GettingStarted.parent = "Resources"; }, /Invalid parent/],
-    [m => { m.articles[1].page = "Blog"; }, /Draft must not be routable/],
-    [m => { m.articles[0].date = "2026-13"; }, /Invalid published article/],
-    [m => { m.articles.shift(); }, /no published article/],
+    [m => { m.articles.find(a => a.status === "draft").page = "Blog"; }, /Draft must not be routable/],
+    [m => { m.articles.find(a => a.id === "GettingStarted").date = "2026-13"; }, /Invalid published article/],
+    [m => { m.articles = m.articles.filter(a => a.id !== "GettingStarted"); }, /no published article/],
     [m => { m.links[0].to = "Unknown"; }, /Invalid link/],
     [m => { m.journeys[0].steps[0].page = "Unknown"; }, /Invalid journey reference/],
   ]) {

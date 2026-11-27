@@ -26,6 +26,13 @@
       "title": "Blog · mement0rq",
       "description": "Writeups, build notes, and lessons from the bench."
     },
+    "AiRecon": {
+      "path": "/blog/ai-recon-rabbit-holes",
+      "parent": "Blog",
+      "heading": "AI recon and the bugs we hadn’t actually found",
+      "title": "AI recon and the bugs we hadn’t actually found · mement0rq",
+      "description": "Rabbit holes, false excitement, and learning when to stop."
+    },
     "GettingStarted": {
       "path": "/blog/getting-started",
       "parent": "Blog",
@@ -36,6 +43,7 @@
   },
   "navigation": ["Home", "Resources", "Blog"],
   "articles": [
+    {"id": "AiRecon", "status": "published", "page": "AiRecon", "date": "2026-09", "readMinutes": 3},
     { "id": "GettingStarted", "status": "published", "page": "GettingStarted", "date": "2026-05", "readMinutes": 5 },
     { "id": "FirstBounty", "status": "draft", "title": "My first bounty" }
   ],
