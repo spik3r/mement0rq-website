@@ -91,3 +91,32 @@ npx wrangler tail
 - [Vite Documentation](https://vitejs.dev/guide/)
 - [React Documentation](https://reactjs.org/)
 - [Hono Documentation](https://hono.dev/)
+
+## Private OOB hit viewer
+
+Open `/monstera` over HTTPS and sign in through the browser prompt. The Worker
+requires the `OOB_VIEW_USERNAME` and `OOB_VIEW_PASSWORD` secrets. Use a
+unique, randomly generated password. For local development use an ignored
+`.dev.vars` file. In production set the values in Worker Secrets.
+
+For live updates, set `OOB_HITS_FEED_URL` to an HTTPS endpoint serving the
+timestamp and protocol JSON below. If it uses bearer authentication, set
+`OOB_HITS_FEED_TOKEN` as a Worker secret. The Worker reads up to 500 records
+and 128 KiB per response and rejects redirects. The browser never receives
+the feed URL or token. The console loads once on entry, then waits for a
+manual refresh or the user to enable polling every 90 seconds.
+
+If the feed URL is unset, the viewer reads the optional `OOB_HITS_SNAPSHOT`
+secret as a small static snapshot. Use ISO 8601 timestamps with a timezone
+and one of HTTP, HTTPS, DNS, or SMTP.
+
+```json
+[
+  { "timestamp": "2026-11-27T03:45:00Z", "protocol": "HTTP" }
+]
+```
+
+Tools, Endpoints, Cheatsheets, Protobuf, and the hit JSON route all share the
+console login under `/monstera`. The OOB Console is at `/monstera/oob`. The bundled Protobuf page comes from
+`tools/protobuf-workbench/protobuf-workbench.html` in Monstera and runs in a
+browser sandbox without network access.

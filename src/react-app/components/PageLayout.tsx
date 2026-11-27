@@ -47,7 +47,7 @@ const Breadcrumb = styled.span` color: var(--muted); `;
 const FlexSpacer = styled.span` flex: 1; `;
 
 const Nav = styled.nav`
-  display: flex; gap: 18px;
+  display: flex; flex-wrap: wrap; gap: 18px;
   a { color: var(--label); text-decoration: none; transition: color 0.15s ease; }
   a:hover, a.active { color: var(--leaf); }
 
@@ -77,6 +77,7 @@ export default function PageLayout() {
             const page = pages[id];
             return "navLabel" in page ? <NavLink key={id} to={page.path} end={id === "Home"}>{page.navLabel}</NavLink> : null;
           })}
+          <a href="/monstera">Monstera</a>
         </Nav>
       </Topbar>
       <Outlet />
