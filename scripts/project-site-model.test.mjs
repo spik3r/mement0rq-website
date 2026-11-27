@@ -45,3 +45,14 @@ test("invalid models stop projection before rendering", () => {
     assert.throws(() => project(model), message);
   }
 });
+
+test("acceptance projection distinguishes public routes from draft labels", () => {
+  const { version, index, articles, drafts } = project(base)["acceptance.json"];
+  assert.equal(version, "site-acceptance/v1");
+  assert.equal(index.path, "/blog");
+  assert.deepEqual(articles.map(({ id, path, date }) => [id, path, date]), [
+    ["AiRecon", "/blog/ai-recon-rabbit-holes", "2026-09"],
+    ["GettingStarted", "/blog/getting-started", "2026-05"],
+  ]);
+  assert.deepEqual(drafts, [{ id: "FirstBounty", title: "My first bounty" }]);
+});

@@ -1,0 +1,18 @@
+{
+  "projectVersion": "foundry-project/v1",
+  "foundry": {
+    "revision": "8842cae0991fbe0397dd84288563aeb32c421595"
+  },
+  "outputs": [
+    {
+      "generator": "diagramgen",
+      "model": "docs/model/architecture.json",
+      "out": "docs/model/rendered/architecture"
+    },
+    {
+      "generator": "diagramgen",
+      "model": "docs/model/sequence-ReadArticle.json",
+      "out": "docs/model/rendered/sequence-ReadArticle"
+    }
+  ]
+}

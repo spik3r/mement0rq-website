@@ -30,6 +30,7 @@
 		"eslint-plugin-react-hooks": "7.0.1",
 		"eslint-plugin-react-refresh": "0.4.24",
 		"globals": "16.5.0",
+		"playwright": "1.65.1",
 		"typescript": "5.8.3",
 		"typescript-eslint": "8.48.0",
 		"vite": "^6.0.0",
@@ -46,7 +47,8 @@
 		"preview": "npm run build && vite preview",
 		"test": "node --test && npm run model:check",
 		"model:generate": "node scripts/project-site-model.mjs --write",
-		"model:check": "node scripts/project-site-model.mjs --check"
+		"model:check": "node scripts/project-site-model.mjs --check",
+		"model:accept": "npm run build && node scripts/verify-site-acceptance.mjs"
 	},
 	"type": "module"
 }

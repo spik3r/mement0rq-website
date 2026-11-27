@@ -18,8 +18,8 @@ function index(items, name, min, max) {
   return out;
 }
 
-// The projection is intentionally view-only. Message order and replies are
-// authored; the generator resolves IDs and never infers application behaviour.
+// The projection does not infer behaviour. Message order and replies are
+// authored; the generator resolves IDs against the model.
 export function project(model) {
   check(model?.version === "foundry-site-model/v1", "Unsupported site model version");
   const { site, pages, navigation, articles, components, links, journeys } = model;
@@ -53,6 +53,7 @@ export function project(model) {
   for (const [key, page] of Object.entries(pages)) {
     if (page.parent === "Blog") check(blogPages.has(key), `Blog route has no published article: ${key}`);
   }
+  check(own(pages, "Blog") && !pages.Blog.parent, "Missing blog index");
   const nodes = index(components, "components", 2, 12);
   const edges = index(links, "links", 1, 24);
   for (const node of nodes.values()) {
@@ -62,7 +63,15 @@ export function project(model) {
     check(!nodes.has(link.id) && nodes.has(link.from) && nodes.has(link.to) && link.from !== link.to && text(link.label, 96), `Invalid link: ${link.id}`);
   }
   const head = (profileVersion, id, title) => ({ formatVersion: "diagram-json/v1", profileVersion, id, title });
+  const pageExpectation = ({ path, heading, title, description }) => ({ path, heading, title, description });
   const output = {
+    "acceptance.json": {
+      version: "site-acceptance/v1",
+      index: pageExpectation(pages.Blog),
+      articles: articles.filter(({ status }) => status === "published").map(({ id, page, date }) =>
+        ({ id, ...pageExpectation(pages[page]), date })),
+      drafts: articles.filter(({ status }) => status === "draft").map(({ id, title }) => ({ id, title })),
+    },
     "architecture.json": {
       ...head("architecture-diagram/v1", site.id, `${site.name}: public site architecture`),
       nodes: components.map(({ id, kind, label }) => ({ id, kind, label })),
