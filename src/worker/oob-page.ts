@@ -102,7 +102,11 @@ export function consolePage(nonce: string) {
       </div>
     </div>
     <div class="toolbar">
-      <label>Filter hits <input id="filter" type="search" placeholder="Protocol or UTC timestamp"></label>
+      <form id="token-form" class="actions" method="post" action="/monstera/oob/lookup">
+        <label>Callback token <input id="callback-token" name="token" autocomplete="off" placeholder="Paste a collector callback token"></label>
+        <button type="submit">Load token</button>
+      </form>
+      <label>Filter hits <input id="filter" type="search" placeholder="Time, method, or path"></label>
       <span id="status" role="status">Loading hits…</span>
     </div>
     <div class="layout">
@@ -111,7 +115,7 @@ export function consolePage(nonce: string) {
         <h2>Recent hits</h2>
         <p id="empty" hidden>No matching hits.</p>
         <table id="hits" hidden aria-label="Recent OOB hits">
-          <thead><tr><th scope="col">Received (UTC)</th><th scope="col">Protocol</th></tr></thead>
+          <thead><tr><th scope="col">Received (UTC)</th><th scope="col">Protocol</th><th scope="col">Method</th><th scope="col">Path</th></tr></thead>
           <tbody></tbody>
         </table>
       </article>
@@ -213,7 +217,7 @@ export function referencePage(topicId?: string, view?: string) {
         </section>
         <section class="card reference-section" id="sources">
           <h2>Data sources</h2>
-          <p><strong>Live feed</strong> reads the configured HTTPS feed. <strong>Snapshot</strong> reads saved records. Cloudflare request events appear separately in Workers Observability.</p>
+          <p><strong>Load token</strong> reads that callback's public metadata from the collector. <strong>Live feed</strong> reads a configured HTTPS feed. <strong>Snapshot</strong> reads saved records. Cloudflare request events appear separately in Workers Observability.</p>
         </section>
         ` : html`
           <article class="card reference-section">
