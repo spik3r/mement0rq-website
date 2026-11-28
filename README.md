@@ -99,7 +99,14 @@ requires the `OOB_VIEW_USERNAME` and `OOB_VIEW_PASSWORD` secrets. Use a
 unique, randomly generated password. For local development use an ignored
 `.dev.vars` file. In production set the values in Worker Secrets.
 
-For live updates, set `OOB_HITS_FEED_URL` to an HTTPS endpoint serving the
+For a collector callback, paste its token into `/monstera/oob` and select
+**Load token**. The Worker fetches public, token-scoped metadata from
+`https://hooks.mement0rq.com/oob/hits` and shows the method, path, and time.
+The token stays out of the browser URL and is not stored. Refresh or enable
+polling to check that token again. The collector must retain the hit in its
+OOB storage; this lookup does not read Cloudflare request logs.
+
+For a separate global feed, set `OOB_HITS_FEED_URL` to an HTTPS endpoint serving the
 timestamp and protocol JSON below. If it uses bearer authentication, set
 `OOB_HITS_FEED_TOKEN` as a Worker secret. The Worker reads up to 500 records
 and 128 KiB per response and rejects redirects. The browser never receives

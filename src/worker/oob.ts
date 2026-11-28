@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { Hono } from "hono";
 import { basicAuth } from "hono/basic-auth";
+import { parseCollectorHits } from "./collector-hits";
 import workbench from "./assets/protobuf-workbench.html?raw";
 import { consolePage, endpointsPage, protobufPage, referencePage, toolsPage } from "./oob-page";
 
@@ -108,6 +109,34 @@ oob.get("/oob/hits", async (c) => {
     return c.json({ source: url ? "Live feed" : "Snapshot", hits });
   } catch {
     return c.json({ error: "Could not load the hit records." }, 503);
+  }
+});
+
+oob.post("/oob/lookup", async (c) => {
+  const reader = c.req.raw.body?.getReader();
+  if (!reader) return c.json({ error: "Enter a callback token." }, 400);
+  let token = "";
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 128) return c.json({ error: "Invalid callback token." }, 400);
+      token += new TextDecoder().decode(value);
+    }
+  } finally {
+    await reader.cancel();
+  }
+  if (!/^[A-Za-z0-9_-]{8,128}$/.test(token)) return c.json({ error: "Invalid callback token." }, 400);
+
+  try {
+    const endpoint = new URL("https://hooks.mement0rq.com/oob/hits");
+    endpoint.searchParams.set("token", token);
+    const hits = parseCollectorHits(JSON.parse(await readFeed(endpoint.href, undefined)));
+    return c.json({ source: "Collector", hits });
+  } catch {
+    return c.json({ error: "Could not load collector hits." }, 503);
   }
 });
 
