@@ -86,3 +86,7 @@ export function parseCollectorHits(value: unknown): CollectorHit[] {
     return Object.fromEntries(Object.entries(detail).filter(([, item]) => item !== undefined)) as CollectorHit;
   }).sort((a, b) => b.timestamp - a.timestamp);
 }
+
+export function parseCallbackHits(value: unknown): CollectorHit[] {
+  return parseCollectorHits(value).filter((hit) => hit.eventType === "callback_hit");
+}

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseCollectorHits } from "./collector-hits.ts";
+import { parseCallbackHits, parseCollectorHits } from "./collector-hits.ts";
 
 test("admin collector hits preserve headers, body preview, and raw fields", () => {
   const source = {
@@ -38,4 +38,15 @@ test("collector responses require the documented shape", () => {
   assert.throws(() => parseCollectorHits({ hits: [{ timestamp: "invalid", method: "GET", path: "/oob/x" }] }));
   assert.throws(() => parseCollectorHits({ hits: Array(501).fill({}) }));
   assert.throws(() => parseCollectorHits({ error: "no KV binding" }));
+});
+
+test("lookup excludes collector admin requests even when the feed includes them", () => {
+  const base = { timestamp: "2026-11-28T03:15:16.393Z", method: "GET" };
+  const hits = parseCallbackHits({ hits: [
+    { ...base, path: "/oob/admin/hits", event_type: "admin_request", header_values: { authorization: "collector-secret" } },
+    { ...base, path: "/oob/test-token", event_type: "callback_hit", header_values: { authorization: "callback-value" } },
+  ] });
+  assert.equal(hits.length, 1);
+  assert.equal(hits[0].path, "/oob/test-token");
+  assert.equal(hits[0].headers.authorization, "callback-value");
 });

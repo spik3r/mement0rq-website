@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { Hono } from "hono";
 import { basicAuth } from "hono/basic-auth";
-import { parseCollectorHits } from "./collector-hits";
+import { parseCallbackHits } from "./collector-hits";
 import workbench from "./assets/protobuf-workbench.html?raw";
 import { consolePage, endpointsPage, protobufPage, referencePage, toolsPage } from "./oob-page";
 
@@ -135,7 +135,8 @@ oob.post("/oob/lookup", async (c) => {
     const adminToken = c.env.OOB_COLLECTOR_ADMIN_TOKEN;
     const endpoint = new URL(adminToken ? "https://hooks.mement0rq.com/oob/admin/hits" : "https://hooks.mement0rq.com/oob/hits");
     endpoint.searchParams.set("token", token);
-    const hits = parseCollectorHits(JSON.parse(await readFeed(endpoint.href, adminToken, adminToken ? 512 * 1024 : 128 * 1024)));
+    endpoint.searchParams.set("event_type", "callback_hit");
+    const hits = parseCallbackHits(JSON.parse(await readFeed(endpoint.href, adminToken, adminToken ? 512 * 1024 : 128 * 1024)));
     return c.json({ source: "Collector", hits });
   } catch {
     return c.json({ error: "Could not load collector hits." }, 503);
