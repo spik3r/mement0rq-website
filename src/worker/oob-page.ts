@@ -2,6 +2,7 @@ import { html, raw } from "hono/html";
 import { securityTopics } from "./security-reference";
 import consoleScript from "./oob-console.js?raw";
 import endpointsScript from "./oob-endpoints.js?raw";
+import fieldReference from "./assets/field-reference.md?raw";
 
 const screens = [
   ["Tools", "/monstera"],
@@ -64,6 +65,10 @@ function page(title: string, body: ReturnType<typeof html>, client?: { nonce: st
     .workbench { display: block; width: 100%; height: max(34rem, calc(100dvh - 11rem)); border: 1px solid var(--border); border-radius: .5rem; background: var(--panel); }
     .endpoint-cards .card[hidden] { display: none; }
     .endpoint-cards .card button { width: auto; margin: .75rem 0 0; }
+    .endpoint-builder { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1rem; }
+    .endpoint-cards section { margin-top: 1.5rem; }
+    .endpoint-cards .endpoint { white-space: pre-wrap; }
+    .field-reference { max-height: 70dvh; overflow: auto; }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: .65rem; text-align: left; }
     tbody tr { border-top: 1px solid var(--border); }
@@ -131,50 +136,69 @@ export function toolsPage() {
 
 export function endpointsPage(nonce: string) {
   const endpoints = [
-    ["OOB Console", "/monstera/oob", "Filter and review recent hit records in the browser."],
-    ["Hit records", "/monstera/oob/hits", "Read the latest timestamps and protocols as JSON."],
+    ["Callbacks", "Generic callback", "/oob/{token}", "Use in SSRF, webhook, import, or server-side fetch fields."],
+    ["Callbacks", "Image callback", "/oob/{token}.gif", "Use for image fetchers, Markdown, avatars, and media proxy tests."],
+    ["Callbacks", "Script callback", "/oob/{token}.js", "Use for script loaders and remote JavaScript references."],
+    ["Redirects", "Single redirect", "/redirect/{token}?to={target}&status=302", "Redirect to a controlled destination."],
+    ["Redirects", "Three-hop redirect", "/redirect-chain/{token}?to={target}&hops=3&status=302", "Check redirect following at each hop."],
+    ["Responses", "Custom JSON response", "/respond/{token}?status=200&content_type=application%2Fjson&body=%7B%22ok%22%3Atrue%7D", "Return a small controlled JSON body."],
+    ["Responses", "Delayed response", "/delay/{token}?ms=1000&status=200", "Test timeout and asynchronous fetch behaviour."],
+    ["Payloads", "JSONP callback", "/json/{token}?callback=probe", "Test JSONP callback handling."],
+    ["Payloads", "JavaScript callback", "/js/{token}?callback=probe", "Return JavaScript from a tokenized URL."],
   ] as const;
+  const groups = [...new Set(endpoints.map(([group]) => group))];
 
   return page("Endpoints", html`
-    <div class="intro"><h1>Endpoints</h1><p>Open or copy the sign-in-protected viewer routes.</p></div>
+    <div class="intro"><h1>Endpoints and example payloads</h1><p>Build and copy collector URLs. These examples do not send a request until you use them.</p></div>
+    <div class="card endpoint-builder">
+      <label>Collector origin <input id="endpoint-origin" type="url" value="https://hooks.mement0rq.com"></label>
+      <label>Callback token <input id="endpoint-token" value="recon-callback-change-me"></label>
+      <label>Redirect target <input id="endpoint-target" type="url" value="https://example.com/"></label>
+    </div>
     <div class="toolbar">
       <label>Filter endpoints <input id="endpoint-filter" type="search" placeholder="Name, path, or description"></label>
     </div>
-    <h2>Read-only routes</h2>
-    <div class="tool-grid endpoint-cards">
-      ${endpoints.map(([title, url, detail]) => html`
-        <section class="card" data-endpoint>
-          <h3>${title}</h3>
-          <p>${detail}</p>
-          <a class="endpoint" href="${url}"><code>GET ${url}</code></a>
-          <button type="button" data-copy-url aria-label="Copy ${title} URL">Copy URL</button>
-        </section>`)}
+    <section><h2>Private viewer routes</h2>
+      <p><a href="/monstera/oob">OOB Console</a> · <a href="/monstera/oob/hits">Hit records JSON</a></p>
+    </section>
+    <div class="endpoint-cards">
+      ${groups.map((group) => html`<section>
+        <h2>${group}</h2>
+        <div class="tool-grid">${endpoints.filter(([name]) => name === group).map(([, title, path, detail]) => html`
+          <article class="card" data-endpoint data-template="${path}">
+            <h3>${title}</h3><p>${detail}</p>
+            <code class="endpoint" data-url></code>
+            <button type="button" data-copy-url aria-label="Copy ${title} URL">Copy full URL</button>
+          </article>`)}</div>
+      </section>`)}
     </div>
     <p id="endpoint-empty" hidden>No endpoints match this filter.</p>
     <p id="endpoint-status" role="status"></p>`, { nonce, script: endpointsScript });
 }
 
 export function referencePage(topicId?: string, view?: string) {
+  const fieldTopics = fieldReference.split(/^## /m).slice(1).map((section, index) => {
+    const [title, ...lines] = section.split("\n");
+    return { id: `field-${index + 1}`, title: title.trim(), content: lines.join("\n").trim() };
+  });
+  const fieldTopic = fieldTopics.find(({ id }) => id === topicId) ?? (topicId ? undefined : fieldTopics[0]);
   const topic = securityTopics.find(({ id }) => id === topicId) ?? securityTopics[0];
   const viewer = topicId === "viewer";
   const markdown = view === "markdown" && !viewer;
   const topicURL = (id: string) => `/monstera/reference?topic=${id}`;
-  const markdownText = [
-    `# ${topic.title}`, "", topic.summary, "", `## ${topic.exampleTitle}`, "",
-    "```ts", topic.example, "```", "", "## Review checks", "",
-    ...topic.checks.map((check) => `- ${check}`),
-  ].join("\n");
-
   return page("Cheatsheets", html`
-    <h1 class="intro">Defensive Security Cheatsheets</h1>
+    <h1 class="intro">Recon Cheatsheets</h1>
     <nav class="reference-views" aria-label="Reference format">
-      <a href="${topicURL(viewer ? "viewer" : topic.id)}" aria-current="${markdown ? "false" : "true"}">Guide catalogue</a>
-      <a href="${topicURL(topic.id)}&amp;view=markdown" aria-current="${markdown ? "true" : "false"}">Markdown reference</a>
+      <a href="${topicURL(viewer ? "viewer" : fieldTopic?.id ?? topic.id)}" aria-current="${markdown ? "false" : "true"}">Guide catalogue</a>
+      <a href="/monstera/reference?view=markdown" aria-current="${markdown ? "true" : "false"}">Full Markdown reference</a>
     </nav>
     <div class="layout reference-layout">
       <nav class="card reference-nav" aria-label="Reference topics">
+        ${fieldTopics.map(({ id, title }) => html`
+          <a href="${topicURL(id)}${markdown ? "&view=markdown" : ""}" aria-current="${!viewer && id === fieldTopic?.id ? "true" : "false"}">${title}</a>`)}
+        <strong>Defensive checks</strong>
         ${securityTopics.map(({ id, title }) => html`
-          <a href="${topicURL(id)}${markdown ? "&view=markdown" : ""}" aria-current="${!viewer && id === topic.id ? "true" : "false"}">${title}</a>`)}
+          <a href="${topicURL(id)}${markdown ? "&view=markdown" : ""}" aria-current="${!viewer && !fieldTopic && id === topic.id ? "true" : "false"}">${title}</a>`)}
         <a href="${topicURL("viewer")}" aria-current="${viewer ? "true" : "false"}">OOB viewer help</a>
       </nav>
       <div>
@@ -193,10 +217,10 @@ export function referencePage(topicId?: string, view?: string) {
         </section>
         ` : html`
           <article class="card reference-section">
-            <h2>${topic.title}</h2>
+            <h2>${markdown ? "Full field reference" : fieldTopic?.title ?? topic.title}</h2>
             ${markdown
-              ? html`<pre class="reference-code"><code>${markdownText}</code></pre>`
-              : html`
+              ? html`<p>The complete Monstera field reference is shown below.</p><pre class="reference-code field-reference"><code>${fieldReference}</code></pre>`
+              : fieldTopic ? html`<pre class="reference-code"><code>${fieldTopic.content}</code></pre>` : html`
                 <p>${topic.summary}</p>
                 <h3>${topic.exampleTitle}</h3>
                 <pre class="reference-code"><code>${topic.example}</code></pre>
