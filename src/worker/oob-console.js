@@ -1,110 +1,194 @@
-const filter = document.querySelector("#filter");
-const poll = document.querySelector("#poll");
-const refresh = document.querySelector("#refresh");
-const status = document.querySelector("#status");
-const protocols = document.querySelector("#protocols");
-const table = document.querySelector("#hits");
-const rows = table.tBodies[0];
-const empty = document.querySelector("#empty");
-const tokenForm = document.querySelector("#token-form");
-const tokenInput = document.querySelector("#callback-token");
+const $ = (selector) => document.querySelector(selector);
+const tokenForm = $("#token-form");
+const tokenInput = $("#callback-token");
+const filter = $("#filter");
+const status = $("#status");
+const records = $("#records");
+const rawJson = $("#raw-json");
+const empty = $("#empty");
+const protocols = $("#protocols");
+const recentTokens = $("#recent-tokens");
+const refresh = $("#refresh");
+const poll = $("#poll");
+const state = { hits: [], token: "", recent: [], protocol: null, raw: false, timer: null, loading: false };
 
-let hits = [];
-let selected = null;
-let timer;
-let loading = false;
-let activeToken = "";
+function shownHits() {
+  const query = filter.value.trim().toLowerCase();
+  return state.hits.filter((hit) =>
+    (!state.protocol || hit.protocol === state.protocol) &&
+    (!query || JSON.stringify(hit).toLowerCase().includes(query)),
+  );
+}
 
-function renderRows() {
-  const query = filter.value.trim().toUpperCase();
-  const matching = hits.filter(({ protocol, timestamp, method, path }) => {
-    const time = new Date(timestamp).toISOString();
-    return (!selected || selected === protocol) && `${protocol} ${time} ${method ?? ""} ${path ?? ""}`.toUpperCase().includes(query);
-  });
+function element(tag, className, content) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (content !== undefined) node.textContent = String(content);
+  return node;
+}
 
-  rows.replaceChildren();
-  for (const { timestamp, protocol, method, path } of matching) {
-    const time = new Date(timestamp).toISOString();
-    const row = rows.insertRow();
-    const label = document.createElement("time");
-    label.dateTime = time;
-    label.textContent = time;
-    row.insertCell().append(label);
-    row.insertCell().textContent = protocol;
-    row.insertCell().textContent = method ?? "—";
-    row.insertCell().textContent = path ?? "—";
+function renderRecords() {
+  const visible = shownHits();
+  $("#selected-token").textContent = state.token || "No token selected";
+  $("#selected-summary").textContent = state.token ? `${state.hits.length} stored · ${visible.length} shown` : "Load a token to see its requests.";
+  for (const id of ["copy-token", "copy-url", "export-json", "copy-headers"]) $(`#${id}`).disabled = !state.token;
+  rawJson.textContent = JSON.stringify(visible.map((hit) => hit.raw || hit), null, 2);
+  records.replaceChildren();
+  for (const hit of visible) {
+    const card = element("article", "oob-record");
+    const heading = element("div", "oob-record-head");
+    const title = element("div");
+    title.append(element("span", "oob-method", hit.method || hit.protocol), "  ", element("span", "", (hit.eventType || "callback_hit").replaceAll("_", " ")));
+    const time = element("time", "", new Date(hit.timestamp).toISOString());
+    time.dateTime = new Date(hit.timestamp).toISOString();
+    heading.append(title, time);
+    card.append(heading, element("code", "oob-path", hit.path || "—"));
+    const grid = element("div", "oob-fields");
+    for (const [label, value] of [
+      ["Source IP", hit.sourceIp], ["Connection peer", hit.peerIp], ["Content type", hit.contentType],
+      ["Body size", hit.bodyLength === undefined ? undefined : `${hit.bodyLength} bytes`],
+      ["Body SHA-256", hit.bodySha256], ["Response status", hit.responseStatus],
+      ["Request ID", hit.hitId],
+    ]) {
+      if (value === undefined) continue;
+      const field = element("div");
+      field.append(element("span", "oob-field-label", label), element("code", "", value));
+      grid.append(field);
+    }
+    if (grid.childNodes.length) card.append(grid);
+    if (hit.query && Object.keys(hit.query).length) {
+      const details = element("details");
+      details.append(element("summary", "", "Query parameters"), element("pre", "", JSON.stringify(hit.query, null, 2)));
+      card.append(details);
+    }
+    const headers = Object.entries(hit.headers || {});
+    if (headers.length) {
+      const details = element("details");
+      details.append(element("summary", "", `Headers (${headers.length})`), element("pre", "", headers.map(([name, value]) => `${name}: ${value}`).join("\n")));
+      card.append(details);
+    }
+    if (hit.bodyPreview !== undefined) {
+      const details = element("details");
+      details.append(element("summary", "", "Body preview"), element("pre", "", hit.bodyPreview));
+      card.append(details);
+    }
+    records.append(card);
   }
-  table.hidden = matching.length === 0;
-  empty.hidden = matching.length > 0;
+  empty.hidden = visible.length > 0;
+  empty.textContent = state.token ? "No matching requests." : "Load a token to see requests.";
+  records.hidden = state.raw;
+  rawJson.hidden = !state.raw;
 }
 
 function renderProtocols() {
   const counts = new Map();
-  for (const { protocol } of hits) counts.set(protocol, (counts.get(protocol) ?? 0) + 1);
-
-  const buttons = new Map();
-  const options = [[null, hits.length], ...Array.from(counts).sort()];
-  for (const [protocol, count] of options) {
-    const button = document.createElement("button");
+  for (const hit of state.hits) counts.set(hit.protocol, (counts.get(hit.protocol) || 0) + 1);
+  const options = [[null, state.hits.length], ...counts];
+  protocols.replaceChildren(...options.map(([name, count]) => {
+    const button = element("button", "", `${name || "All protocols"} · ${count}`);
     button.type = "button";
-    button.textContent = `${protocol ?? "All protocols"} · ${count}`;
-    button.setAttribute("aria-pressed", String(selected === protocol));
+    button.setAttribute("aria-pressed", String(name === state.protocol));
     button.addEventListener("click", () => {
-      selected = protocol;
-      for (const [key, control] of buttons) {
-        control.setAttribute("aria-pressed", String(key === selected));
-      }
-      renderRows();
+      state.protocol = name;
+      renderProtocols();
+      renderRecords();
     });
-    buttons.set(protocol, button);
-  }
-  protocols.replaceChildren(...buttons.values());
+    return button;
+  }));
+}
+
+function renderRecent() {
+  recentTokens.replaceChildren(...state.recent.map((token) => {
+    const button = element("button");
+    button.type = "button";
+    button.setAttribute("aria-pressed", String(token === state.token));
+    button.append(element("code", "", token), element("small", "", token === state.token ? `${state.hits.length} hits` : "Select token"));
+    button.addEventListener("click", () => {
+      if (state.loading) return;
+      tokenInput.value = token;
+      state.token = token;
+      state.hits = [];
+      state.protocol = null;
+      renderRecords();
+      loadHits();
+    });
+    return button;
+  }));
+  if (!state.recent.length) recentTokens.append(element("p", "", "Load a token to start."));
 }
 
 async function loadHits() {
-  if (loading) return;
-  loading = true;
+  if (state.loading) return;
+  state.loading = true;
   refresh.disabled = true;
+  tokenForm.querySelector("button").disabled = true;
+  status.textContent = "Loading requests…";
   try {
-    const response = await fetch(activeToken ? "/monstera/oob/lookup" : "/monstera/oob/hits", {
-      method: activeToken ? "POST" : "GET",
-      body: activeToken || undefined,
+    const response = await fetch(state.token ? "/monstera/oob/lookup" : "/monstera/oob/hits", {
+      method: state.token ? "POST" : "GET",
+      body: state.token || undefined,
       cache: "no-store",
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Hit request failed");
-    }
     const data = await response.json();
-    hits = data.hits;
-    if (selected && !hits.some(({ protocol }) => protocol === selected)) selected = null;
+    if (!response.ok) throw new Error(data.error || "Could not load requests.");
+    state.hits = data.hits;
+    if (state.protocol && !state.hits.some((hit) => hit.protocol === state.protocol)) state.protocol = null;
+    if (state.token) state.recent = [state.token, ...state.recent.filter((token) => token !== state.token)].slice(0, 8);
+    renderRecent();
     renderProtocols();
-    renderRows();
-    status.textContent = `${data.source} · ${hits.length} hits · updated ${new Date().toLocaleTimeString()}${activeToken ? "" : " · enter a token for live collector hits"}`;
+    renderRecords();
+    status.textContent = `${data.source} · ${state.hits.length} hits · updated ${new Date().toLocaleTimeString()}${state.token ? "" : " · enter a token for live collector hits"}`;
   } catch (error) {
     status.textContent = error.message;
   } finally {
     refresh.disabled = false;
-    loading = false;
+    tokenForm.querySelector("button").disabled = false;
+    state.loading = false;
   }
 }
 
-poll.addEventListener("click", () => {
-  if (timer === undefined) {
-    timer = setInterval(loadHits, 90_000);
-    poll.textContent = "Pause polling";
-  } else {
-    clearInterval(timer);
-    timer = undefined;
-    poll.textContent = "Enable polling (90s)";
-  }
-  poll.setAttribute("aria-pressed", String(timer !== undefined));
-});
-refresh.addEventListener("click", loadHits);
+function copy(text) {
+  navigator.clipboard.writeText(text).then(() => { status.textContent = "Copied to clipboard."; }).catch(() => { status.textContent = "Clipboard unavailable."; });
+}
+
 tokenForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  activeToken = tokenInput.value.trim();
+  if (state.loading) return;
+  state.token = tokenInput.value.trim();
+  state.hits = [];
+  state.protocol = null;
+  renderRecords();
   loadHits();
 });
-filter.addEventListener("input", renderRows);
+filter.addEventListener("input", renderRecords);
+refresh.addEventListener("click", loadHits);
+poll.addEventListener("click", () => {
+  if (state.timer) clearInterval(state.timer);
+  state.timer = state.timer ? null : setInterval(loadHits, 90_000);
+  poll.textContent = state.timer ? "Pause polling" : "Enable polling (90s)";
+  poll.setAttribute("aria-pressed", String(Boolean(state.timer)));
+});
+$("#details-tab").addEventListener("click", () => {
+  state.raw = false;
+  $("#details-tab").setAttribute("aria-pressed", "true");
+  $("#raw-tab").setAttribute("aria-pressed", "false");
+  renderRecords();
+});
+$("#raw-tab").addEventListener("click", () => {
+  state.raw = true;
+  $("#details-tab").setAttribute("aria-pressed", "false");
+  $("#raw-tab").setAttribute("aria-pressed", "true");
+  renderRecords();
+});
+$("#copy-token").addEventListener("click", () => copy(state.token));
+$("#copy-url").addEventListener("click", () => copy(`https://hooks.mement0rq.com/oob/${encodeURIComponent(state.token)}`));
+$("#copy-headers").addEventListener("click", () => copy(shownHits().map((hit) => Object.entries(hit.headers || {}).map(([name, value]) => `${name}: ${value}`).join("\n")).join("\n\n")));
+$("#export-json").addEventListener("click", () => {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(shownHits().map((hit) => hit.raw || hit), null, 2)], { type: "application/json" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `oob-${state.token.slice(0, 12)}.json`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
 loadHits();

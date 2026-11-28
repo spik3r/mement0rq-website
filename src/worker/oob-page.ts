@@ -73,6 +73,40 @@ function page(title: string, body: ReturnType<typeof html>, client?: { nonce: st
     th, td { padding: .65rem; text-align: left; }
     tbody tr { border-top: 1px solid var(--border); }
     td:last-child { color: var(--green); }
+    .oob-heading { margin-bottom: 1.25rem; }
+    .oob-heading p { margin: .25rem 0 0; }
+    .oob-toolbar { display: grid; grid-template-columns: minmax(16rem, 26rem) minmax(12rem, 1fr) auto; gap: .75rem; align-items: end; padding: 1rem; margin-bottom: 1rem; }
+    .oob-toolbar form { display: flex; gap: .5rem; align-items: end; flex-wrap: nowrap; }
+    .oob-toolbar form label { min-width: 0; flex: 1; }
+    .oob-toolbar form button { width: auto; margin: .25rem 0 0; white-space: nowrap; }
+    .oob-toolbar label { display: block; color: var(--muted); font-size: .8rem; }
+    .oob-toolbar input { margin-top: .25rem; }
+    .oob-layout { grid-template-columns: minmax(14rem, 24%) minmax(0, 1fr); align-items: start; }
+    .oob-side, .oob-detail { min-height: 24rem; }
+    .oob-side h2 { margin-bottom: .5rem; }
+    .oob-side button { display: block; text-align: left; overflow-wrap: anywhere; }
+    .oob-side button[aria-pressed="true"] { background: var(--selected); color: var(--accent); }
+    .oob-side small { display: block; color: var(--muted); }
+    .oob-side hr { border: 0; border-top: 1px solid var(--border); margin: 1rem 0; }
+    .oob-detail-head { display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    .oob-detail-head h2 { margin: .25rem 0; color: var(--accent); overflow-wrap: anywhere; }
+    .oob-detail-head .actions { gap: .5rem; }
+    .oob-detail-head .actions button { width: auto; margin: 0; }
+    .oob-tabs { display: flex; gap: .5rem; border-bottom: 1px solid var(--border); margin: .75rem 0 1rem; }
+    .oob-tabs button { width: auto; margin: 0; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; }
+    .oob-tabs button[aria-pressed="true"] { border-bottom-color: var(--accent); color: var(--accent); }
+    .oob-record { margin-top: .75rem; padding: 1rem; border: 1px solid var(--border); border-radius: .5rem; background: #1b2031; }
+    .oob-record-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+    .oob-method { color: var(--green); font-weight: 700; }
+    .oob-path { display: block; margin: .75rem 0; overflow-wrap: anywhere; }
+    .oob-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .75rem; margin: 1rem 0; }
+    .oob-field-label { display: block; color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
+    .oob-fields code { overflow-wrap: anywhere; }
+    .oob-record details { border-top: 1px solid var(--border); padding: .6rem 0; }
+    .oob-record summary { cursor: pointer; color: var(--muted); }
+    .oob-record pre, #raw-json { white-space: pre-wrap; overflow-wrap: anywhere; }
+    #raw-json { max-height: 60dvh; overflow: auto; }
+    @media (max-width: 65rem) { .oob-toolbar { grid-template-columns: 1fr; } }
     @media (max-width: 48rem) { .layout { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -94,30 +128,34 @@ function page(title: string, body: ReturnType<typeof html>, client?: { nonce: st
 
 export function consolePage(nonce: string) {
   return page("OOB Console", html`
-    <div class="title-row">
-      <div><div class="eyebrow">CALLBACK EVIDENCE</div><h1>OOB Callback Console</h1></div>
+    <div class="title-row oob-heading">
+      <div><div class="eyebrow">CALLBACK EVIDENCE</div><h1>Requests</h1><p>Review requests recorded by the collector.</p></div>
       <div class="actions">
         <button id="poll" aria-pressed="false">Enable polling (90s)</button>
         <button id="refresh">Refresh</button>
       </div>
     </div>
-    <div class="toolbar">
+    <div class="card oob-toolbar">
       <form id="token-form" class="actions" method="post" action="/monstera/oob/lookup">
         <label>Callback token <input id="callback-token" name="token" autocomplete="off" placeholder="Paste a collector callback token"></label>
         <button type="submit">Load token</button>
       </form>
-      <label>Filter hits <input id="filter" type="search" placeholder="Time, method, or path"></label>
+      <label>Filter requests <input id="filter" type="search" placeholder="Path, method, header, or body hash"></label>
       <span id="status" role="status">Loading hits…</span>
     </div>
-    <div class="layout">
-      <aside class="card"><h2>Protocols</h2><div id="protocols"></div></aside>
-      <article class="card">
-        <h2>Recent hits</h2>
+    <div class="layout oob-layout">
+      <aside class="card oob-side">
+        <h2>Recent tokens</h2><div id="recent-tokens"><p>Load a token to start.</p></div>
+        <hr><h2>Protocols</h2><div id="protocols"></div>
+      </aside>
+      <article class="card oob-detail">
+        <div class="oob-detail-head">
+          <div><div class="eyebrow">SELECTED TOKEN</div><h2 id="selected-token">No token selected</h2><span id="selected-summary">Load a token to see its requests.</span></div>
+          <div class="actions"><button id="copy-token" disabled>Copy token</button><button id="copy-url" disabled>Copy callback URL</button><button id="export-json" disabled>Export JSON</button></div>
+        </div>
+        <div class="oob-tabs"><button id="details-tab" aria-pressed="true">Request details</button><button id="raw-tab" aria-pressed="false">Raw JSON</button><button id="copy-headers" disabled>Copy headers</button></div>
         <p id="empty" hidden>No matching hits.</p>
-        <table id="hits" hidden aria-label="Recent OOB hits">
-          <thead><tr><th scope="col">Received (UTC)</th><th scope="col">Protocol</th><th scope="col">Method</th><th scope="col">Path</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <div id="records"></div><pre id="raw-json" hidden></pre>
       </article>
     </div>`, { nonce, script: consoleScript });
 }

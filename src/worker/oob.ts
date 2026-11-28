@@ -11,6 +11,7 @@ type OobEnv = Env & {
   OOB_HITS_SNAPSHOT?: string;
   OOB_HITS_FEED_URL?: string;
   OOB_HITS_FEED_TOKEN?: string;
+  OOB_COLLECTOR_ADMIN_TOKEN?: string;
 };
 
 type Hit = { timestamp: number; protocol: string };
@@ -58,7 +59,7 @@ oob.use("*", async (c, next) => {
   })(c, next);
 });
 
-async function readFeed(url: string, token: string | undefined) {
+async function readFeed(url: string, token: string | undefined, maxBytes = 128 * 1024) {
   const endpoint = new URL(url);
   if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password) {
     throw new Error("Invalid feed URL");
@@ -80,7 +81,7 @@ async function readFeed(url: string, token: string | undefined) {
       const { done, value } = await reader.read();
       if (done) return body + decoder.decode();
       size += value.byteLength;
-      if (size > 128 * 1024) throw new Error("Feed is too large");
+      if (size > maxBytes) throw new Error("Feed is too large");
       body += decoder.decode(value, { stream: true });
     }
   } finally {
@@ -131,9 +132,10 @@ oob.post("/oob/lookup", async (c) => {
   if (!/^[A-Za-z0-9_-]{8,128}$/.test(token)) return c.json({ error: "Invalid callback token." }, 400);
 
   try {
-    const endpoint = new URL("https://hooks.mement0rq.com/oob/hits");
+    const adminToken = c.env.OOB_COLLECTOR_ADMIN_TOKEN;
+    const endpoint = new URL(adminToken ? "https://hooks.mement0rq.com/oob/admin/hits" : "https://hooks.mement0rq.com/oob/hits");
     endpoint.searchParams.set("token", token);
-    const hits = parseCollectorHits(JSON.parse(await readFeed(endpoint.href, undefined)));
+    const hits = parseCollectorHits(JSON.parse(await readFeed(endpoint.href, adminToken, adminToken ? 512 * 1024 : 128 * 1024)));
     return c.json({ source: "Collector", hits });
   } catch {
     return c.json({ error: "Could not load collector hits." }, 503);
