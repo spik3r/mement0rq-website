@@ -32,7 +32,7 @@ function renderRecords() {
   $("#selected-token").textContent = state.token || "No token selected";
   $("#selected-summary").textContent = state.token ? `${state.hits.length} stored · ${visible.length} shown` : "Load a token to see its requests.";
   for (const id of ["copy-token", "copy-url", "export-json", "copy-headers"]) $(`#${id}`).disabled = !state.token;
-  rawJson.textContent = JSON.stringify(visible, null, 2);
+  rawJson.textContent = JSON.stringify(visible.map((hit) => hit.raw || hit), null, 2);
   records.replaceChildren();
   for (const hit of visible) {
     const card = element("article", "oob-record");
@@ -56,10 +56,20 @@ function renderRecords() {
       grid.append(field);
     }
     if (grid.childNodes.length) card.append(grid);
+    if (hit.query && Object.keys(hit.query).length) {
+      const details = element("details");
+      details.append(element("summary", "", "Query parameters"), element("pre", "", JSON.stringify(hit.query, null, 2)));
+      card.append(details);
+    }
     const headers = Object.entries(hit.headers || {});
     if (headers.length) {
       const details = element("details");
       details.append(element("summary", "", `Headers (${headers.length})`), element("pre", "", headers.map(([name, value]) => `${name}: ${value}`).join("\n")));
+      card.append(details);
+    }
+    if (hit.bodyPreview !== undefined) {
+      const details = element("details");
+      details.append(element("summary", "", "Body preview"), element("pre", "", hit.bodyPreview));
       card.append(details);
     }
     records.append(card);
@@ -174,7 +184,7 @@ $("#copy-token").addEventListener("click", () => copy(state.token));
 $("#copy-url").addEventListener("click", () => copy(`https://hooks.mement0rq.com/oob/${encodeURIComponent(state.token)}`));
 $("#copy-headers").addEventListener("click", () => copy(shownHits().map((hit) => Object.entries(hit.headers || {}).map(([name, value]) => `${name}: ${value}`).join("\n")).join("\n\n")));
 $("#export-json").addEventListener("click", () => {
-  const url = URL.createObjectURL(new Blob([JSON.stringify(shownHits(), null, 2)], { type: "application/json" }));
+  const url = URL.createObjectURL(new Blob([JSON.stringify(shownHits().map((hit) => hit.raw || hit), null, 2)], { type: "application/json" }));
   const link = document.createElement("a");
   link.href = url;
   link.download = `oob-${state.token.slice(0, 12)}.json`;

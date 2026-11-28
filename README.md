@@ -103,18 +103,19 @@ For a collector callback, paste its token into `/monstera/oob` and select
 **Load token**. The Worker fetches public, token-scoped metadata from
 `https://hooks.mement0rq.com/oob/hits` and shows the method, path, time,
 header names, content type, body size, and body hash. Request cards include
-filtering, a sanitized JSON view, copy actions, and export. Recent tokens are
+filtering, a raw JSON view, copy actions, and export. Recent tokens are
 kept only in the current browser page.
 The token stays out of the browser URL and is not stored. Refresh or enable
 polling to check that token again. The collector must retain the hit in its
 OOB storage; this lookup does not read Cloudflare request logs.
 
-To show routine header values and additional request metadata, set the
+To show full header values and additional request metadata, set the
 `OOB_COLLECTOR_ADMIN_TOKEN` Worker secret to the collector's admin token.
-The Worker then calls `/oob/admin/hits` server-side. It sends only a short
-allowlist of routine header values to the browser; credential, cookie, token,
-and other header values stay redacted or unavailable. The browser never
-receives the admin token or stored body previews.
+The Worker then calls `/oob/admin/hits` server-side and shows the complete
+stored request, including credential and cookie headers, query parameters,
+and body preview. The browser never receives the admin token itself. Treat
+the private viewer, browser downloads, and copied data as sensitive. Without
+the secret, the public endpoint supplies header names but not their values.
 
 For a separate global feed, set `OOB_HITS_FEED_URL` to an HTTPS endpoint serving the
 timestamp and protocol JSON below. If it uses bearer authentication, set

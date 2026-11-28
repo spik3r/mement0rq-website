@@ -12,17 +12,17 @@ export type CollectorHit = {
   responseStatus?: number;
   sourceIp?: string;
   peerIp?: string;
+  query?: Record<string, string>;
+  bodyPreview?: string;
+  raw: Record<string, unknown>;
 };
-
-const sensitiveHeader = /authorization|cookie|token|key|secret|password|credential|signature/i;
-const safeHeaderValue = new Set(["accept", "accept-encoding", "accept-language", "content-type", "user-agent", "x-forwarded-proto"]);
 
 function optionalString(value: unknown, limit = 2048): string | undefined {
   return typeof value === "string" && value.length <= limit ? value : undefined;
 }
 
-// The public endpoint supplies header names. The admin endpoint may supply
-// values, but only a narrow set of routine headers is sent to this viewer.
+// The public endpoint supplies header names. The admin endpoint supplies full
+// request records when its server-side token is configured.
 export function parseCollectorHits(value: unknown): CollectorHit[] {
   if (typeof value !== "object" || value === null || !Array.isArray((value as { hits?: unknown }).hits)) {
     throw new Error("Invalid collector response");
@@ -49,7 +49,18 @@ export function parseCollectorHits(value: unknown): CollectorHit[] {
         if (typeof name !== "string" || !/^[a-z0-9-]{1,100}$/i.test(name)) throw new Error("Invalid header name");
         const key = name.toLowerCase();
         const raw = values && typeof values === "object" ? (values as Record<string, unknown>)[key] : undefined;
-        headers[key] = sensitiveHeader.test(key) ? "[redacted]" : safeHeaderValue.has(key) ? optionalString(raw, 512) ?? "[value unavailable]" : "[value unavailable]";
+        headers[key] = typeof raw === "string" ? raw : "[value unavailable from public endpoint]";
+      }
+    }
+    if (values && typeof values === "object" && !Array.isArray(values)) {
+      for (const [name, raw] of Object.entries(values)) {
+        if (typeof raw === "string" && /^[a-z0-9-]{1,100}$/i.test(name)) headers[name.toLowerCase()] = raw;
+      }
+    }
+    const query: Record<string, string> = {};
+    if (hit.query && typeof hit.query === "object" && !Array.isArray(hit.query)) {
+      for (const [name, raw] of Object.entries(hit.query)) {
+        if (typeof raw === "string") query[name] = raw;
       }
     }
     const bodyLength = Number.isSafeInteger(hit.body_length) && (hit.body_length as number) >= 0 ? hit.body_length as number : undefined;
@@ -68,6 +79,9 @@ export function parseCollectorHits(value: unknown): CollectorHit[] {
       responseStatus,
       sourceIp: optionalString(hit.source_ip, 100),
       peerIp: optionalString(hit.peer_ip, 100),
+      query,
+      bodyPreview: typeof hit.body_preview === "string" ? hit.body_preview : undefined,
+      raw: hit,
     };
     return Object.fromEntries(Object.entries(detail).filter(([, item]) => item !== undefined)) as CollectorHit;
   }).sort((a, b) => b.timestamp - a.timestamp);

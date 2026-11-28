@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { parseCollectorHits } from "./collector-hits.ts";
 
-test("collector hits expose routine header values but redact credentials", () => {
-  const hits = parseCollectorHits({ hits: [{
+test("admin collector hits preserve headers, body preview, and raw fields", () => {
+  const source = {
     timestamp: "2026-11-28T03:15:16.393Z",
     method: "GET",
     path: "/oob/recon-callback-change-me",
@@ -11,16 +11,13 @@ test("collector hits expose routine header values but redact credentials", () =>
     header_values: { cookie: "secret", "content-type": "application/json", "user-agent": "test-client" },
     body_preview: "private body",
     body_sha256: "sha256:0",
-  }] });
-  assert.deepEqual(hits, [{
-    timestamp: Date.parse("2026-11-28T03:15:16.393Z"),
-    protocol: "HTTP",
-    method: "GET",
-    path: "/oob/recon-callback-change-me",
-    eventType: "callback_hit",
-    headers: { cookie: "[redacted]", "content-type": "application/json", "user-agent": "test-client" },
-    bodySha256: "sha256:0",
-  }]);
+    query: { execution: "test-execution" },
+  };
+  const [hit] = parseCollectorHits({ hits: [source] });
+  assert.deepEqual(hit.headers, source.header_values);
+  assert.deepEqual(hit.query, source.query);
+  assert.equal(hit.bodyPreview, "private body");
+  assert.deepEqual(hit.raw, source);
 });
 
 test("public collector hits show header names without invented values", () => {
@@ -30,7 +27,10 @@ test("public collector hits show header names without invented values", () => {
     path: "/oob/test-token",
     headers_present: ["accept", "authorization"],
   }] });
-  assert.deepEqual(hit.headers, { accept: "[value unavailable]", authorization: "[redacted]" });
+  assert.deepEqual(hit.headers, {
+    accept: "[value unavailable from public endpoint]",
+    authorization: "[value unavailable from public endpoint]",
+  });
   assert.equal("bodyPreview" in hit, false);
 });
 
