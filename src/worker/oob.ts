@@ -69,7 +69,7 @@ async function readFeed(url: string, token: string | undefined) {
     cache: "no-store",
     signal: AbortSignal.timeout(8000),
   });
-  if (!response.ok || !response.body) throw new Error("Feed unavailable");
+  if (!response.ok || !response.body) throw new Error(`Feed unavailable (${response.status})`);
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -135,7 +135,8 @@ oob.post("/oob/lookup", async (c) => {
     endpoint.searchParams.set("token", token);
     const hits = parseCollectorHits(JSON.parse(await readFeed(endpoint.href, undefined)));
     return c.json({ source: "Collector", hits });
-  } catch {
+  } catch (error) {
+    console.error("Collector lookup failed", error instanceof Error ? error.message.replaceAll(token, "[token]") : "unknown error");
     return c.json({ error: "Could not load collector hits." }, 503);
   }
 });
