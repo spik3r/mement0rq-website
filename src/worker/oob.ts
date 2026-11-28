@@ -65,7 +65,7 @@ async function readFeed(url: string, token: string | undefined) {
   }
   const response = await fetch(endpoint, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
-    redirect: "error",
+    redirect: "manual",
     cache: "no-store",
     signal: AbortSignal.timeout(8000),
   });
@@ -135,8 +135,7 @@ oob.post("/oob/lookup", async (c) => {
     endpoint.searchParams.set("token", token);
     const hits = parseCollectorHits(JSON.parse(await readFeed(endpoint.href, undefined)));
     return c.json({ source: "Collector", hits });
-  } catch (error) {
-    console.error("Collector lookup failed", error instanceof Error ? error.message.replaceAll(token, "[token]") : "unknown error");
+  } catch {
     return c.json({ error: "Could not load collector hits." }, 503);
   }
 });
